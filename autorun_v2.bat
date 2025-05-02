@@ -8,8 +8,8 @@ if %errorlevel% neq 0 (
 )
 
 :loop
-cd C:\sauce_bot_2.0.py
-python sauce_bot.py
+cd C:\gian_saucebot
+python sauce_bot_2.0.py
 if %errorlevel% neq 0 (
     echo Script failed. Restarting in 60 seconds...
     timeout /t 60
