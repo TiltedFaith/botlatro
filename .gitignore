@@ -4,6 +4,9 @@ token.env
 
 # Ignore configuration files
 config.json
+bad_bot_counter.json
+bot_state.json
+good_bot_counter.json
 
 # Ignore token files
 token.txt
