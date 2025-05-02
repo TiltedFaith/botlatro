@@ -10,7 +10,6 @@ import time
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
 
-client.run(token)
 
 # Global variables and setup
 intents = discord.Intents.all()
@@ -568,3 +567,6 @@ async def on_message(message):
                 
     with open('bad_bot_counter.json', 'w') as file:
                 json.dump({'badBotCount': abuse_data['badBotCount']}, file)
+
+
+client.run(token)
