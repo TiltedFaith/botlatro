@@ -336,7 +336,8 @@ byakuya_mentioned = [
 ]
 
 kys_mentioned = [
-    'i want to die', 'i want to kill myself', 'i want to kms', 'i wanna kms', 'i wanna kill myself', 'kys', 'keep yourself safe'
+    'i want to die', 'i want to kill myself', 'i want to kms', 'i wanna kms', 
+    'i wanna kill myself', 'kys', 'keep yourself safe'
 ]
 
 @client.event
