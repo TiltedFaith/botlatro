@@ -1,0 +1,25 @@
+# Ignore environment files
+.env
+
+# Ignore configuration files
+config.json
+
+# Ignore token files
+token.txt
+
+# Ignore compiled Python files
+*.pyc
+__pycache__/
+
+# Ignore images and videos (optional, if you don't want to upload them)
+*.png
+*.jpg
+*.gif
+*.mp4
+
+# Ignore logs
+*.log
+
+# Ignore system files
+.DS_Store
+Thumbs.db
