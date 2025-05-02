@@ -34,7 +34,6 @@ except FileNotFoundError:
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
-    await client.change_presence(activity=discord.Game(name=f"Appreciated {count_data['goodBotCount']} times and abused {abuse_data['badBotCount']} times"))
 
 # Legacy event handler for message processing
 @client.event
@@ -524,7 +523,7 @@ async def on_message(message):
     # Handle menhera_mentioned trigger words
     await handle_trigger_words_video(
         message, 
-        menhera_mentioned, 
+        kys_mentioned, 
         r'C:\gian_saucebot\images\dont_kys.mp4'
     )
     
