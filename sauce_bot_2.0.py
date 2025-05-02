@@ -7,7 +7,7 @@ import json
 from discord.ext import tasks
 import time
 
-load_dotenv()
+load_dotenv(dotenv_path='C:\\gian_saucebot\\token.env')
 token = os.getenv('DISCORD_TOKEN')
 
 
@@ -483,49 +483,49 @@ async def on_message(message):
     await handle_trigger_words_image(
         message, 
         elf_mentioned, 
-        r'C:\gian_bot\images\iyot.png'
+        r'C:\gian_saucebot\images\iyot.png'
     )
     
     # Handle yuuka_mentioned trigger words
     await handle_trigger_words_image(
         message, 
         yuuka_mentioned, 
-        r'C:\gian_bot\images\yuuka.png'
+        r'C:\gian_saucebot\images\yuuka.png'
     )
     
     # Handle jarvis_mentioned trigger words
     await handle_trigger_words_image(
         message, 
         jarvis_mentioned, 
-        r'C:\gian_bot\images\jarvis.png'
+        r'C:\gian_saucebot\images\jarvis.png'
     )
 
     # Handle menhera_mentioned trigger words
     await handle_trigger_words_image(
         message, 
         menhera_mentioned, 
-        r'C:\gian_bot\images\MikaSurprised.png'
+        r'C:\gian_saucebot\images\MikaSurprised.png'
     )
 
     # Handle gojo_mentioned trigger words
     await handle_trigger_words_image(
         message, 
         gojo_mentioned, 
-        r'C:\gian_bot\images\gojo_reaction.gif'
+        r'C:\gian_saucebot\images\gojo_reaction.gif'
     )
 
     # Handle byakuya_mentioned trigger words
     await handle_trigger_words_image(
         message, 
         byakuya_mentioned, 
-        r'C:\gian_bot\images\byakuya.jpg'
+        r'C:\gian_saucebot\images\byakuya.jpg'
     )
     
     # Handle menhera_mentioned trigger words
     await handle_trigger_words_video(
         message, 
         menhera_mentioned, 
-        r'C:\gian_bot\images\dont_kys.mp4'
+        r'C:\gian_saucebot\images\dont_kys.mp4'
     )
     
     # Handle stickers named "MIAW"
@@ -557,7 +557,7 @@ async def on_message(message):
     if any(word in message.content.lower() for word in badBot_mentioned):
                 if not re.match(r'^https?:\/\/.*[\r\n]*', message.content):
                     abuse_data['badBotCount'] += 1
-                    with open(r'C:\gian_bot\images\Ruby_Bonk.gif', 'rb') as ruby:
+                    with open(r'C:\gian_saucebot\images\Ruby_Bonk.gif', 'rb') as ruby:
                         pictureRuby = discord.File(ruby)
                         await message.channel.send(file=pictureRuby)
                     # for reaction in reactions:
