@@ -76,6 +76,16 @@ def setup_handlers(client):
 
         elif message.content.startswith("!leave"):
             await handler.leave_voice(message.guild.id)
+        
+        # ==========TEXT COMMANDS==========
+        # B-KOMACHI
+        if any(keyword in msg_lower for keyword in [
+            'b-komachi', 'bkomachi', 'b komachi', 
+            'gsc komachi', 'gsc bkomachi', 'gsc-komachi'
+        ]):  
+            print("Triggered 'komachi' response")
+            await message.channel.send('https://tenor.com/view/oshi-no-ko-b-komachi-hoshino-ruby-arima-kana-mem-cho-gif-442194686914760108')
+            return
 
         # ==========FILE COMMANDS==========
         # BALATRO
@@ -88,9 +98,4 @@ def setup_handlers(client):
             except FileNotFoundError:
                 await message.channel.send("Couldn't find the balatro image!")
                 print(f"Image not found at: {balatro_path}")
-        
-        # ==========TEXT COMMANDS==========
-        # B-KOMACHI
-        if ('b-komachi' in msg_lower or 'bkomachi' in msg_lower or 'b komachi' in msg_lower or 'gsc komachi' in msg_lower or 'gsc bkomachi' in msg_lower or 'gsc-komachi' in msg_lower):
-            print("Triggered 'komachi' response")
-            await message.channel.send('https://tenor.com/view/oshi-no-ko-b-komachi-hoshino-ruby-arima-kana-mem-cho-gif-442194686914760108')
+            return
