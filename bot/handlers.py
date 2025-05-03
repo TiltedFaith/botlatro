@@ -111,6 +111,30 @@ def setup_handlers(client):
                 await message.channel.send("Couldn't find the gros michel image!")
                 print(f"Image not found at: {banana_path}")
             return
+
+        # BAD BOT
+        if 'bad bot' in msg_lower:
+            print("Triggered 'bad bot' image")
+            badbot_path = Path(__file__).parent.parent/'assets'/'images'/'bad bot.jpg'
+            try:
+                with open(badbot_path, 'rb') as img:
+                    await message.channel.send(file=discord.File(img))
+            except FileNotFoundError:
+                await message.channel.send("Couldn't find the bad bot image!")
+                print(f"Image not found at: {badbot_path}")
+            return
+        
+        # GOOD BOT
+        if 'good bot' in msg_lower:
+            print("Triggered 'good bot' image")
+            goodbot_path = Path(__file__).parent.parent/'assets'/'images'/'good bot.jpg'
+            try:
+                with open(goodbot_path, 'rb') as img:
+                    await message.channel.send(file=discord.File(img))
+            except FileNotFoundError:
+                await message.channel.send("Couldn't find the good bot image!")
+                print(f"Image not found at: {goodbot_path}")
+            return
         
         # SA CUBAO
         if 'cubao' in msg_lower:
@@ -125,4 +149,32 @@ def setup_handlers(client):
             except discord.HTTPException as e:
                 await message.channel.send(f"Failed to send audio: {e}")
                 print(f"Audio send error: {e}")
+            return
+        
+        # LEAGUE OF LEGENDS
+        if any(keyword in msg_lower for keyword in [
+            'league', 'league of legends']):
+            print("Triggered 'league' video")
+            league_path = Path(__file__).parent.parent / 'assets' / 'video' / 'Stinky.mp4'
+            try:
+                video_file = discord.File(league_path)
+                await message.channel.send(file=video_file)
+            except FileNotFoundError:
+                await message.channel.send("Couldn't find the league video!")
+                print(f"Video not found at: {video_file}")
+            except discord.HTTPException as e:
+                await message.channel.send(f"Failed to send video: {e}")
+                print(f"Audio send error: {e}")
+            return
+        
+        # JUMPSCARE
+        if 'jumpscare' in msg_lower:
+            print("Triggered 'jumpscare' image")
+            jumpscare_path = Path(__file__).parent.parent/'assets'/'images'/'jumpscare.png'
+            try:
+                with open(jumpscare_path, 'rb') as img:
+                    await message.channel.send(file=discord.File(img))
+            except FileNotFoundError:
+                await message.channel.send("Couldn't find jumpscare image!")
+                print(f"Image not found at: {jumpscare_path}")
             return
