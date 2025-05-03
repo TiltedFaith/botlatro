@@ -2,6 +2,7 @@ import os
 import discord
 import time
 from pathlib import Path
+import random
 
 class MessageHandler:
     def __init__(self, client):
@@ -9,6 +10,8 @@ class MessageHandler:
         self.user_cooldowns = {}  # {user_id: last_message_time}
         self.cooldown = 3  # seconds
         self.voice_clients = {}  # {guild_id: voice_client}
+        self.gacha_counter = 0
+        self.guarantee_counter = 0
 
     async def handle_message(self, message):
         current_time = time.time()
@@ -194,25 +197,110 @@ def setup_handlers(client):
             return
         
         # WHEEL OF FORTUNE
-        import random
         if 'wheel of fortune' in msg_lower:
-            if random.randrange(1, 5) == 1:
-                print("Triggered 'success' image")
-                success_path = Path(__file__).parent.parent/'assets'/'images'/'success.png'
-                try:
-                    with open(success_path, 'rb') as img:
-                        await message.channel.send(file=discord.File(img))
-                except FileNotFoundError:
-                    await message.channel.send("Couldn't find success image!")
-                    print(f"Image not found at: {success_path}")
-            else:
-                print("Triggered 'nope' image")
-                nope_path = Path(__file__).parent.parent/'assets'/'images'/'nope.png'
-                try:
-                    with open(nope_path, 'rb') as img:
-                        await message.channel.send(file=discord.File(img))
-                except FileNotFoundError:
-                    await message.channel.send("Couldn't find nope image!")
-                    print(f"Image not found at: {nope_path}")
-                
-            return
+            wheeloffortune_path = ""
+            print("Triggered 'wheel of fortune' image")
+            def get_card_style():
+                styles = ["nope", "foil", "holographic", "polychrome"]
+                weights = [75.0, 12.5, 8.75, 3.75]
+                return random.choices(styles, weights=weights, k=1)[0]
+            
+            match get_card_style():
+                case "nope":
+                    wheeloffortune_path = Path(__file__).parent.parent/'assets'/'images'/'nope.png'
+                case "foil":
+                    wheeloffortune_path = Path(__file__).parent.parent/'assets'/'images'/'foil.webp'
+                case "holographic":
+                    wheeloffortune_path = Path(__file__).parent.parent/'assets'/'images'/'holographic.webp'
+                case "polychrome":
+                    wheeloffortune_path = Path(__file__).parent.parent/'assets'/'images'/'polychrome.webp'
+
+            try:
+                with open(wheeloffortune_path, 'rb') as img:
+                    await message.channel.send(file=discord.File(img))
+            except FileNotFoundError:
+                await message.channel.send("Couldn't find wheel of fortune image!")
+                print(f"Image not found at: {wheeloffortune_path}")
+            
+        # HOYO GACHA
+        def get_rates(ssr=0.6, sr=5.1, normal=94.3):
+            # Apply 4★ guarantee if needed
+            if handler.guarantee_counter >= 10:
+                return {
+                    "ssr_rate": ssr,
+                    "non_ssr_rate": 100 - ssr,  # All non-SSR becomes SR
+                    "non_ssr": {
+                        "sr_rate": 100 - ssr,   # 100% of non-SSR is SR
+                        "normal_rate": 0         # 0% chance for Normal
+                    }
+                }
+            
+            # Apply progressive pity after 74 pulls
+            if handler.gacha_counter > 74:
+                increase = (handler.gacha_counter - 74) * 6
+                ssr = min(100, ssr + increase)
+                remaining = 100 - ssr
+
+                # Maintain original SR/Normal ratio
+                original_sr_ratio = sr / (sr + normal)
+                sr = remaining * original_sr_ratio
+                normal = remaining * (1 - original_sr_ratio)
+            
+            non_ssr = sr + normal
+            return {
+                "ssr_rate": ssr,
+                "non_ssr_rate": non_ssr,
+                "non_ssr": {
+                    "sr_rate": sr,
+                    "normal_rate": normal
+                }
+            }        
+        if '!hoyogacha' in msg_lower:
+            #handler counters are global variables
+            handler.gacha_counter += 1 
+            handler.guarantee_counter += 1
+
+            gacha_counter = handler.gacha_counter
+            guarantee_counter = handler.guarantee_counter  
+
+            gacha_counter_msg = f"Guaranteed 5 Star!: {90 - gacha_counter}"
+            guarantee_counter_msg = f"Guaranteed 4 Star!: {10 - guarantee_counter}"
+
+            current_rates = get_rates(handler.gacha_counter)
+
+            await message.channel.send(
+                f"{gacha_counter_msg}\n{guarantee_counter_msg}"
+            )
+
+            hoyogacha_path = ""
+            print("Triggered 'hoyogacha' image")
+            def pull():
+                styles = ["5star", "4star", "3star"]
+                weights = [
+                    current_rates["ssr_rate"],              
+                    current_rates["non_ssr"]["sr_rate"],    
+                    current_rates["non_ssr"]["normal_rate"]
+                ]
+                return random.choices(styles, weights=weights, k=1)[0]
+            
+            match pull():
+                case "5star":
+                    hoyogacha_path = Path(__file__).parent.parent/'assets'/'images'/ 'gacha' / '5star.webp'
+                    print("5 star gacha pulled!")
+                    handler.gacha_counter = 0
+                    handler.guarantee_counter = 0
+                case "4star":
+                    hoyogacha_path = Path(__file__).parent.parent/'assets'/'images'/ 'gacha' / '4star.webp'
+                    print("4 star gacha pulled!")
+                    handler.guarantee_counter = 0
+                case "3star":
+                    print("3 star gacha pulled!")
+                    hoyogacha_path = Path(__file__).parent.parent/'assets'/'images'/ 'gacha' / '3star.webp'
+
+            try:
+                with open(hoyogacha_path, 'rb') as img:
+                    await message.channel.send(file=discord.File(img))
+            except FileNotFoundError:
+                await message.channel.send("Couldn't find gacha image!")
+                print(f"Image not found at: {hoyogacha_path}")       
+            
