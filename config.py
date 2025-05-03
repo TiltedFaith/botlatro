@@ -12,3 +12,4 @@ class Config:
 
         self.INTENTS = discord.Intents.default()
         self.INTENTS.message_content = True
+        self.INTENTS.voice_states = True  

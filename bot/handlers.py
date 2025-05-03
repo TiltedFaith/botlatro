@@ -8,6 +8,7 @@ class MessageHandler:
         self.client = client
         self.user_cooldowns = {}  # {user_id: last_message_time}
         self.cooldown = 3  # seconds
+        self.voice_clients = {}  # {guild_id: voice_client}
 
     async def handle_message(self, message):
         current_time = time.time()
@@ -23,6 +24,36 @@ class MessageHandler:
         self.user_cooldowns[user_id] = current_time
         return True  # Message allowed
 
+    async def join_voice(self, message):
+        """Join the author's voice channel"""
+        if not message.author.voice:
+            await message.channel.send("You're not in a voice channel!")
+            return False
+
+        voice_channel = message.author.voice.channel
+        guild_id = message.guild.id
+
+        # If already connected to this guild
+        if guild_id in self.voice_clients:
+            await self.voice_clients[guild_id].move_to(voice_channel)
+            return True
+
+        try:
+            vc = await voice_channel.connect()
+            self.voice_clients[guild_id] = vc
+            return True
+        except Exception as e:
+            await message.channel.send(f"Failed to join: {str(e)}")
+            return False
+
+    async def leave_voice(self, guild_id):
+        """Leave voice channel in specified guild"""
+        if guild_id in self.voice_clients:
+            await self.voice_clients[guild_id].disconnect()
+            del self.voice_clients[guild_id]
+            return True
+        return False
+
 def setup_handlers(client):
     handler = MessageHandler(client)
 
@@ -36,8 +67,15 @@ def setup_handlers(client):
         # Check cooldown first
         if not await handler.handle_message(message):
             return
+        
+        # VOICE COMMANDS
+        if message.content.startswith("!join"):
+            await handler.join_voice(message)
 
-        # BALATRO IMAGE
+        elif message.content.startswith("!leave"):
+            await handler.leave_voice(message.guild.id)
+
+        # IMAGE COMMANDS
         balatro_path = Path(__file__).parent.parent/'assets'/'images'/'balatro.jpg'
         
         if message.content.lower() == 'balatro':
@@ -50,6 +88,7 @@ def setup_handlers(client):
                 print(f"Image not found at: {balatro_path}")
                 return
 
+        # TEXT COMMANDS
         '''
         # YE RESPONSE (commented out)
         if message.content.lower() == 'ye':
