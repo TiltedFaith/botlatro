@@ -7,7 +7,7 @@ import json
 from discord.ext import tasks
 import time
 
-load_dotenv(dotenv_path='C:\\gian_saucebot\\token.env')
+load_dotenv(dotenv_path='token.env')
 token = os.getenv('DISCORD_TOKEN')
 
 
