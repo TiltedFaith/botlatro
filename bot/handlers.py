@@ -99,3 +99,30 @@ def setup_handlers(client):
                 await message.channel.send("Couldn't find the balatro image!")
                 print(f"Image not found at: {balatro_path}")
             return
+        
+        # GROS MICHEL
+        if 'gros michel' in msg_lower:
+            print("Triggered 'gros michel' image")
+            banana_path = Path(__file__).parent.parent/'assets'/'images'/'banana.webp'
+            try:
+                with open(banana_path, 'rb') as img:
+                    await message.channel.send(file=discord.File(img))
+            except FileNotFoundError:
+                await message.channel.send("Couldn't find the gros michel image!")
+                print(f"Image not found at: {banana_path}")
+            return
+        
+        # SA CUBAO
+        if 'cubao' in msg_lower:
+            print("Triggered 'cubao' audio")
+            cubao_path = Path(__file__).parent.parent / 'assets' / 'audio' / 'Sa cubao.mp3'
+            try:
+                audio_file = discord.File(cubao_path)
+                await message.channel.send(file=audio_file)
+            except FileNotFoundError:
+                await message.channel.send("Couldn't find the cubao audio!")
+                print(f"Audio not found at: {cubao_path}")
+            except discord.HTTPException as e:
+                await message.channel.send(f"Failed to send audio: {e}")
+                print(f"Audio send error: {e}")
+            return
