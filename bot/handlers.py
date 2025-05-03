@@ -101,7 +101,7 @@ def setup_handlers(client):
             return
         
         # GROS MICHEL
-        if 'gros michel' in msg_lower:
+        if 'gros michel' in msg_lower or 'cavendish' in msg_lower:
             print("Triggered 'gros michel' image")
             banana_path = Path(__file__).parent.parent/'assets'/'images'/'banana.webp'
             try:
