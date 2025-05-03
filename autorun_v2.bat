@@ -3,8 +3,8 @@ setlocal
 
 :: ===== CONFIG =====
 :: change BOT_DIR to the file path of your bot folder
-set "BOT_DIR=G:\Miko's folder\GianBot\gian_saucebot" 
-set "BOT_SCRIPT=sauce_bot_2.0.py"
+set "BOT_DIR=G:\Miko's folder\botlatro\botlatro" 
+set "BOT_SCRIPT=botlatro.py"
 set "RETRY_DELAY=60"
 set "NETWORK_RETRY_DELAY=30"
 :: ========================
