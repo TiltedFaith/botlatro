@@ -1,0 +1,57 @@
+# Environment files
+.env
+token.env
+*.env
+secrets/
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+pip-log.txt
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Byte-compiled files
+*.pyc
+
+# Test and coverage
+.coverage
+htmlcov/
+.pytest_cache/
+tests/__pycache__/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Dependency directories
+lib/
+lib64/
+site-packages/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# VS Code
+settings.json
