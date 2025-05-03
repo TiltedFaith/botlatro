@@ -8,4 +8,4 @@ def setup_handlers(client):
         
         if message.content.lower() == 'ye':
             print("Triggered 'ye' response")
-            await message.channel.send('wee')  # Changed to 'wee' to prevent loops
+            await message.channel.send('ye')

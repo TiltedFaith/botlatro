@@ -10,6 +10,3 @@ class BotClient(discord.Client):
 
     async def on_ready(self):
         print(f'Bot is ready as {self.user}')
-        await self.change_presence(
-            activity=discord.Game(name="Say 'ye' to me!")
-        )
