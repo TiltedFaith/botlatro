@@ -178,3 +178,41 @@ def setup_handlers(client):
                 await message.channel.send("Couldn't find jumpscare image!")
                 print(f"Image not found at: {jumpscare_path}")
             return
+        
+        # JOKER
+        if any(keyword in msg_lower for keyword in [
+            'joker','jimbo'
+        ]): 
+            print("Triggered 'joker' image")
+            joker_path = Path(__file__).parent.parent/'assets'/'images'/'joker.png'
+            try:
+                with open(joker_path, 'rb') as img:
+                    await message.channel.send(file=discord.File(img))
+            except FileNotFoundError:
+                await message.channel.send("Couldn't find joker image!")
+                print(f"Image not found at: {joker_path}")
+            return
+        
+        # WHEEL OF FORTUNE
+        import random
+        if 'wheel of fortune' in msg_lower:
+            if random.randrange(1, 5) == 1:
+                print("Triggered 'success' image")
+                success_path = Path(__file__).parent.parent/'assets'/'images'/'success.png'
+                try:
+                    with open(success_path, 'rb') as img:
+                        await message.channel.send(file=discord.File(img))
+                except FileNotFoundError:
+                    await message.channel.send("Couldn't find success image!")
+                    print(f"Image not found at: {success_path}")
+            else:
+                print("Triggered 'nope' image")
+                nope_path = Path(__file__).parent.parent/'assets'/'images'/'nope.png'
+                try:
+                    with open(nope_path, 'rb') as img:
+                        await message.channel.send(file=discord.File(img))
+                except FileNotFoundError:
+                    await message.channel.send("Couldn't find nope image!")
+                    print(f"Image not found at: {nope_path}")
+                
+            return
