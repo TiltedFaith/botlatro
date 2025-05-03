@@ -64,6 +64,8 @@ def setup_handlers(client):
         
         print(f"Received message: {message.content}")
 
+        msg_lower = message.content.lower()
+
         # Check cooldown first
         if not await handler.handle_message(message):
             return
@@ -77,20 +79,18 @@ def setup_handlers(client):
 
         # ==========FILE COMMANDS==========
         # BALATRO
-        balatro_path = Path(__file__).parent.parent/'assets'/'images'/'balatro.jpg'
-        
-        if message.content.lower() == 'balatro':
+        if 'balatro' in msg_lower:
             print("Triggered 'balatro' image")
+            balatro_path = Path(__file__).parent.parent/'assets'/'images'/'balatro.jpg'
             try:
                 with open(balatro_path, 'rb') as img:
                     await message.channel.send(file=discord.File(img))
             except FileNotFoundError:
                 await message.channel.send("Couldn't find the balatro image!")
                 print(f"Image not found at: {balatro_path}")
-                return
         
         # ==========TEXT COMMANDS==========
         # B-KOMACHI
-        if (message.content.lower() == 'b-komachi' or message.content.lower() == 'bkomachi' or message.content.lower() == 'b komachi' or message.content.lower() == 'gsc komachi' or message.content.lower() == 'gsc bkomachi' or message.content.lower() == 'gsc-komachi'):
+        if ('b-komachi' in msg_lower or 'bkomachi' in msg_lower or 'b komachi' in msg_lower or 'gsc komachi' in msg_lower or 'gsc bkomachi' in msg_lower or 'gsc-komachi' in msg_lower):
             print("Triggered 'komachi' response")
             await message.channel.send('https://tenor.com/view/oshi-no-ko-b-komachi-hoshino-ruby-arima-kana-mem-cho-gif-442194686914760108')
