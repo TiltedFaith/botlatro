@@ -223,7 +223,10 @@ def setup_handlers(client):
                 print(f"Image not found at: {wheeloffortune_path}")
             
         # HOYO GACHA
-        def get_rates(ssr=0.6, sr=5.1, normal=94.3):
+        def get_rates():
+            ssr = 0.6  # Base SSR rate (5★)
+            sr = 5.1    # Base SR rate (4★)
+            normal = 94.3  # Base Normal rate (3★)
             # Apply 4★ guarantee if needed
             if handler.guarantee_counter >= 10:
                 return {
@@ -266,14 +269,15 @@ def setup_handlers(client):
             gacha_counter_msg = f"Guaranteed 5 Star!: {90 - gacha_counter}"
             guarantee_counter_msg = f"Guaranteed 4 Star!: {10 - guarantee_counter}"
 
-            current_rates = get_rates(handler.gacha_counter)
+            current_rates = get_rates()
+            print(gacha_counter_msg, " ", current_rates["ssr_rate"])
 
             await message.channel.send(
                 f"{gacha_counter_msg}\n{guarantee_counter_msg}"
             )
-
+            
             hoyogacha_path = ""
-            print("Triggered 'hoyogacha' image")
+            #print("Triggered 'hoyogacha' image")
             def pull():
                 styles = ["5star", "4star", "3star"]
                 weights = [
@@ -291,10 +295,10 @@ def setup_handlers(client):
                     handler.guarantee_counter = 0
                 case "4star":
                     hoyogacha_path = Path(__file__).parent.parent/'assets'/'images'/ 'gacha' / '4star.webp'
-                    print("4 star gacha pulled!")
+                    #print("4 star gacha pulled!")
                     handler.guarantee_counter = 0
                 case "3star":
-                    print("3 star gacha pulled!")
+                    # print("3 star gacha pulled!")
                     hoyogacha_path = Path(__file__).parent.parent/'assets'/'images'/ 'gacha' / '3star.webp'
 
             try:
@@ -302,5 +306,5 @@ def setup_handlers(client):
                     await message.channel.send(file=discord.File(img))
             except FileNotFoundError:
                 await message.channel.send("Couldn't find gacha image!")
-                print(f"Image not found at: {hoyogacha_path}")       
-            
+                print(f"Image not found at: {hoyogacha_path}")
+        
