@@ -287,19 +287,37 @@ def setup_handlers(client):
                 ]
                 return random.choices(styles, weights=weights, k=1)[0]
             
+            def get_random_image(folder):
+                """Get a random image (.webp, .png, .jpg) from the specified folder."""
+                folder_path = Path(__file__).parent.parent / 'assets' / 'images' / 'gacha' / folder
+                if not folder_path.exists():
+                    raise FileNotFoundError(f"Folder not found: {folder_path}")
+
+                # Find all allowed image formats (case-insensitive)
+                allowed_extensions = ('.webp', '.png', '.jpg')
+                images = [
+                    img for img in folder_path.iterdir()
+                    if img.suffix.lower() in allowed_extensions and img.is_file()
+                ]
+
+                if not images:
+                    raise FileNotFoundError(f"No images (webp/png/jpg) found in {folder_path}")
+
+                return random.choice(images)
+
             match pull():
                 case "5star":
-                    hoyogacha_path = Path(__file__).parent.parent/'assets'/'images'/ 'gacha' / '5star.webp'
+                    hoyogacha_path = get_random_image('5 star')
                     print("5 star gacha pulled!")
                     handler.gacha_counter = 0
                     handler.guarantee_counter = 0
                 case "4star":
-                    hoyogacha_path = Path(__file__).parent.parent/'assets'/'images'/ 'gacha' / '4star.webp'
-                    #print("4 star gacha pulled!")
+                    hoyogacha_path = get_random_image('4 star')
+                    print("4 star gacha pulled!")
                     handler.guarantee_counter = 0
                 case "3star":
-                    # print("3 star gacha pulled!")
-                    hoyogacha_path = Path(__file__).parent.parent/'assets'/'images'/ 'gacha' / '3star.webp'
+                    hoyogacha_path = get_random_image('3 star')
+                    print("3 star gacha pulled!")
 
             try:
                 with open(hoyogacha_path, 'rb') as img:
