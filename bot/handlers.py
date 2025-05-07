@@ -3,6 +3,7 @@ import discord
 import time
 from pathlib import Path
 import random
+import sqlite3
 
 class MessageHandler:
     def __init__(self, client):
@@ -10,8 +11,57 @@ class MessageHandler:
         self.user_cooldowns = {}  # {user_id: last_message_time}
         self.cooldown = 3  # seconds
         self.voice_clients = {}  # {guild_id: voice_client}
-        self.gacha_counter = 0
-        self.guarantee_counter = 0
+        self.db = sqlite3.connect('gacha_data.db', check_same_thread=False)
+        self._init_db()
+
+    def _init_db(self):
+        cursor = self.db.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY,
+                gacha_counter INTEGER DEFAULT 0,
+                guarantee_counter INTEGER DEFAULT 0
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS pull_history (
+                user_id INTEGER,
+                pull_result TEXT,
+                pull_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        self.db.commit()
+
+    async def close(self):
+        """Call this when the bot shuts down"""
+        self.db.close()
+
+    async def update_user_counters(self, user_id, gacha_counter, guarantee_counter):
+        try:
+            cursor = self.db.cursor()
+            cursor.execute('BEGIN TRANSACTION')  # Start transaction
+            cursor.execute('''
+                INSERT OR REPLACE INTO users 
+                VALUES (?, ?, ?)
+            ''', (user_id, gacha_counter, guarantee_counter))
+            self.db.commit()  # Commit on success
+        except Exception as e:
+            self.db.rollback()  # Rollback on error
+            raise e
+
+    async def log_pull(self, user_id, result):
+        cursor = self.db.cursor()
+        cursor.execute('''
+            INSERT INTO pull_history (user_id, pull_result)
+            VALUES (?, ?)
+        ''', (user_id, result))
+        self.db.commit()
+
+    async def get_user_counters(self, user_id):
+        cursor = self.db.cursor()
+        cursor.execute('SELECT gacha_counter, guarantee_counter FROM users WHERE user_id = ?', (user_id,))
+        row = cursor.fetchone()
+        return row or (0, 0)  # Default to 0 if user doesn't exist
 
     async def handle_message(self, message):
         current_time = time.time()
@@ -82,10 +132,7 @@ def setup_handlers(client):
         
         # ==========TEXT COMMANDS==========
         # B-KOMACHI
-        if any(keyword in msg_lower for keyword in [
-            'b-komachi', 'bkomachi', 'b komachi', 
-            'gsc komachi', 'gsc bkomachi', 'gsc-komachi'
-        ]):  
+        if any(keyword in msg_lower for keyword in ['b-komachi', 'bkomachi', 'b komachi', 'gsc komachi', 'gsc bkomachi', 'gsc-komachi']):  
             print("Triggered 'komachi' response")
             await message.channel.send('https://tenor.com/view/oshi-no-ko-b-komachi-hoshino-ruby-arima-kana-mem-cho-gif-442194686914760108')
             return
@@ -155,8 +202,7 @@ def setup_handlers(client):
             return
         
         # LEAGUE OF LEGENDS
-        if any(keyword in msg_lower for keyword in [
-            'league', 'league of legends']):
+        if any(keyword in msg_lower for keyword in ['league', 'league of legends']):
             print("Triggered 'league' video")
             league_path = Path(__file__).parent.parent / 'assets' / 'video' / 'Stinky.mp4'
             try:
@@ -183,9 +229,7 @@ def setup_handlers(client):
             return
         
         # JOKER
-        if any(keyword in msg_lower for keyword in [
-            'joker','jimbo'
-        ]): 
+        if any(keyword in msg_lower for keyword in ['joker','jimbo']): 
             print("Triggered 'joker' image")
             joker_path = Path(__file__).parent.parent/'assets'/'images'/'joker.png'
             try:
@@ -223,12 +267,12 @@ def setup_handlers(client):
                 print(f"Image not found at: {wheeloffortune_path}")
             
         # HOYO GACHA
-        def get_rates():
+        def get_rates(gacha_counter, guarantee_counter):
             ssr = 0.6  # Base SSR rate (5★)
             sr = 5.1    # Base SR rate (4★)
             normal = 94.3  # Base Normal rate (3★)
             # Apply 4★ guarantee if needed
-            if handler.guarantee_counter >= 10:
+            if guarantee_counter >= 10:
                 return {
                     "ssr_rate": ssr,
                     "non_ssr_rate": 100 - ssr,  # All non-SSR becomes SR
@@ -239,8 +283,8 @@ def setup_handlers(client):
                 }
             
             # Apply progressive pity after 74 pulls
-            if handler.gacha_counter > 74:
-                increase = (handler.gacha_counter - 74) * 6
+            if gacha_counter > 74:
+                increase = (gacha_counter - 74) * 6
                 ssr = min(100, ssr + increase)
                 remaining = 100 - ssr
 
@@ -258,25 +302,36 @@ def setup_handlers(client):
                     "normal_rate": normal
                 }
             }        
+        async def counter_message(user_id):
+            gacha_counter, guarantee_counter = await handler.get_user_counters(user_id)
+
+            gacha_counter_msg = f"Guaranteed 5 Star!: {90 - gacha_counter}"
+            guarantee_counter_msg = f"Guaranteed 4 Star!: {10 - guarantee_counter}"
+
+            return await message.channel.send(
+                f"{message.author.mention}\n{gacha_counter_msg}\n{guarantee_counter_msg}"
+            )
+        # GACHA COUNTER
+        if msg_lower.startswith('!counter'):
+            user_id = message.author.id
+            await counter_message(user_id)
+            
+        # HOYO GACHA PULL
         if msg_lower.startswith('!hoyogacha'):
-            # Extract number of pulls (default to 1 if no number specified)
+            user_id = message.author.id
+            gacha_counter, guarantee_counter = await handler.get_user_counters(user_id)
             pull_count = 1
+            # 10 PULLS
             if msg_lower.startswith('!hoyogacha10'):
                 pull_count = 10
 
-            # Handler counters are global variables
             results = []
-            five_star_pulled = False
-            four_star_pulled = False
             
             for _ in range(pull_count):
-                handler.gacha_counter += 1 
-                handler.guarantee_counter += 1
+                gacha_counter += 1 
+                guarantee_counter += 1
 
-                gacha_counter = handler.gacha_counter
-                guarantee_counter = handler.guarantee_counter  
-
-                current_rates = get_rates()
+                current_rates = get_rates(gacha_counter, guarantee_counter)
                 
                 def pull():
                     styles = ["5star", "4star", "3star"]
@@ -292,21 +347,14 @@ def setup_handlers(client):
                 
                 # Update counters if needed
                 if result == "5star":
-                    handler.gacha_counter = 0
-                    handler.guarantee_counter = 0
-                    five_star_pulled = True
+                    gacha_counter = 0
+                    guarantee_counter = 0
                 elif result == "4star":
-                    handler.guarantee_counter = 0
-                    four_star_pulled = True
+                    guarantee_counter = 0
 
-            # Prepare messages
-            gacha_counter_msg = f"Guaranteed 5 Star!: {90 - handler.gacha_counter}"
-            guarantee_counter_msg = f"Guaranteed 4 Star!: {10 - handler.guarantee_counter}"
+            await handler.update_user_counters(user_id, gacha_counter, guarantee_counter)
 
-            # Send counter messages
-            await message.channel.send(
-                f"{gacha_counter_msg}\n{guarantee_counter_msg}"
-            )
+            await counter_message(user_id)
 
             # Get and send images
             def get_random_image(folder):
@@ -335,21 +383,31 @@ def setup_handlers(client):
                         case "5star":
                             image_path = get_random_image('5 star')
                             print("5 star gacha pulled!")
-                            await message.channel.send("5 star gacha pulled!")
+                            await message.channel.send(f"{message.author.mention} 5 star gacha pulled!")
                         case "4star":
                             image_path = get_random_image('4 star')
                             print("4 star gacha pulled!")
-                            await message.channel.send("4 star gacha pulled!")
+                            await message.channel.send(f"{message.author.mention} 4 star gacha pulled!")
                         case "3star":
                             image_path = get_random_image('3 star')
                             print("3 star gacha pulled!")
-                    
+                    await handler.log_pull(user_id, result)  # Log each pull
                     files.append(discord.File(image_path))
                 except FileNotFoundError:
                     print(f"Image not found for result: {result}")
 
             if files:
-                await message.channel.send(files=files)
+                await message.channel.send(f"{message.author.mention}", files=files)
             else:
                 await message.channel.send("Couldn't find any gacha images!")
-        
+
+        if msg_lower.startswith('!commands'):
+            commands = [
+                "!join - Join your voice channel (no functionality yet)",
+                "!leave - Leave your voice channel (no functionality yet)",
+                "!counter - Check your gacha counter",
+                "!hoyogacha - Single pull",
+                "!hoyogacha10 - 10 pulls",
+                "!commands - List all commands"
+            ]
+            await message.channel.send(f"{message.author.mention}\n".join(commands))
