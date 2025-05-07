@@ -410,4 +410,4 @@ def setup_handlers(client):
                 "!hoyogacha10 - 10 pulls",
                 "!commands - List all commands"
             ]
-            await message.channel.send(f"{message.author.mention}\n".join(commands))
+            await message.channel.send(f"{message.author.mention} \n" + f"\n".join(commands))
