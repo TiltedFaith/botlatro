@@ -136,7 +136,11 @@ def setup_handlers(client):
             print("Triggered 'komachi' response")
             await message.channel.send('https://tenor.com/view/oshi-no-ko-b-komachi-hoshino-ruby-arima-kana-mem-cho-gif-442194686914760108')
             return
-
+        
+        if any(keyword in msg_lower for keyword in ['i love botlatro', 'i love you botlatro', 'i love you, botlatro', 'i love <@1368022942687953026>', 'i love you <@1368022942687953026>', 'i love you, <@1368022942687953026>', 'i love botlatro <@1368022942687953026>', 'i love you botlatro <@1368022942687953026>', 'i love you, botlatro <@1368022942687953026>']):
+            print("Triggered 'I love botlatro' response")
+            await message.channel.send('https://tenor.com/view/green-goblin-tongue-malicious-devious-gif-24541958')
+            return
         # ==========FILE COMMANDS==========
         # BALATRO
         if 'balatro' in msg_lower:
