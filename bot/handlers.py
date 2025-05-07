@@ -258,35 +258,57 @@ def setup_handlers(client):
                     "normal_rate": normal
                 }
             }        
-        if '!hoyogacha' in msg_lower:
-            #handler counters are global variables
-            handler.gacha_counter += 1 
-            handler.guarantee_counter += 1
+        if msg_lower.startswith('!hoyogacha'):
+            # Extract number of pulls (default to 1 if no number specified)
+            pull_count = 1
+            if msg_lower.startswith('!hoyogacha10'):
+                pull_count = 10
 
-            gacha_counter = handler.gacha_counter
-            guarantee_counter = handler.guarantee_counter  
+            # Handler counters are global variables
+            results = []
+            five_star_pulled = False
+            four_star_pulled = False
+            
+            for _ in range(pull_count):
+                handler.gacha_counter += 1 
+                handler.guarantee_counter += 1
 
-            gacha_counter_msg = f"Guaranteed 5 Star!: {90 - gacha_counter}"
-            guarantee_counter_msg = f"Guaranteed 4 Star!: {10 - guarantee_counter}"
+                gacha_counter = handler.gacha_counter
+                guarantee_counter = handler.guarantee_counter  
 
-            current_rates = get_rates()
-            print(gacha_counter_msg, " ", current_rates["ssr_rate"])
+                current_rates = get_rates()
+                
+                def pull():
+                    styles = ["5star", "4star", "3star"]
+                    weights = [
+                        current_rates["ssr_rate"],              
+                        current_rates["non_ssr"]["sr_rate"],    
+                        current_rates["non_ssr"]["normal_rate"]
+                    ]
+                    return random.choices(styles, weights=weights, k=1)[0]
+                
+                result = pull()
+                results.append(result)
+                
+                # Update counters if needed
+                if result == "5star":
+                    handler.gacha_counter = 0
+                    handler.guarantee_counter = 0
+                    five_star_pulled = True
+                elif result == "4star":
+                    handler.guarantee_counter = 0
+                    four_star_pulled = True
 
+            # Prepare messages
+            gacha_counter_msg = f"Guaranteed 5 Star!: {90 - handler.gacha_counter}"
+            guarantee_counter_msg = f"Guaranteed 4 Star!: {10 - handler.guarantee_counter}"
+
+            # Send counter messages
             await message.channel.send(
                 f"{gacha_counter_msg}\n{guarantee_counter_msg}"
             )
-            
-            hoyogacha_path = ""
-            #print("Triggered 'hoyogacha' image")
-            def pull():
-                styles = ["5star", "4star", "3star"]
-                weights = [
-                    current_rates["ssr_rate"],              
-                    current_rates["non_ssr"]["sr_rate"],    
-                    current_rates["non_ssr"]["normal_rate"]
-                ]
-                return random.choices(styles, weights=weights, k=1)[0]
-            
+
+            # Get and send images
             def get_random_image(folder):
                 """Get a random image (.webp, .png, .jpg) from the specified folder."""
                 folder_path = Path(__file__).parent.parent / 'assets' / 'images' / 'gacha' / folder
@@ -305,24 +327,29 @@ def setup_handlers(client):
 
                 return random.choice(images)
 
-            match pull():
-                case "5star":
-                    hoyogacha_path = get_random_image('5 star')
-                    print("5 star gacha pulled!")
-                    handler.gacha_counter = 0
-                    handler.guarantee_counter = 0
-                case "4star":
-                    hoyogacha_path = get_random_image('4 star')
-                    print("4 star gacha pulled!")
-                    handler.guarantee_counter = 0
-                case "3star":
-                    hoyogacha_path = get_random_image('3 star')
-                    print("3 star gacha pulled!")
+            # For 10-pull, we'll send all images in one message
+            files = []
+            for result in results:
+                try:
+                    match result:
+                        case "5star":
+                            image_path = get_random_image('5 star')
+                            print("5 star gacha pulled!")
+                            await message.channel.send("5 star gacha pulled!")
+                        case "4star":
+                            image_path = get_random_image('4 star')
+                            print("4 star gacha pulled!")
+                            await message.channel.send("4 star gacha pulled!")
+                        case "3star":
+                            image_path = get_random_image('3 star')
+                            print("3 star gacha pulled!")
+                    
+                    files.append(discord.File(image_path))
+                except FileNotFoundError:
+                    print(f"Image not found for result: {result}")
 
-            try:
-                with open(hoyogacha_path, 'rb') as img:
-                    await message.channel.send(file=discord.File(img))
-            except FileNotFoundError:
-                await message.channel.send("Couldn't find gacha image!")
-                print(f"Image not found at: {hoyogacha_path}")
+            if files:
+                await message.channel.send(files=files)
+            else:
+                await message.channel.send("Couldn't find any gacha images!")
         
