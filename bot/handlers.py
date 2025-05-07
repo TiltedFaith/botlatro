@@ -266,7 +266,7 @@ def setup_handlers(client):
                 await message.channel.send("Couldn't find wheel of fortune image!")
                 print(f"Image not found at: {wheeloffortune_path}")
             
-        # HOYO GACHA
+        #============GACHA===========
         def get_rates(gacha_counter, guarantee_counter):
             ssr = 0.6  # Base SSR rate (5★)
             sr = 5.1    # Base SR rate (4★)
@@ -311,6 +311,40 @@ def setup_handlers(client):
             return await message.channel.send(
                 f"{message.author.mention}\n{gacha_counter_msg}\n{guarantee_counter_msg}"
             )
+            """Generate and send HTML galleries for all rarities"""
+            try:
+                rarities = ['3 star', '4 star', '5 star']
+                files = []
+                
+                for rarity in rarities:
+                    try:
+                        html_path = generate_html_for_rarity(rarity)
+                        files.append(discord.File(html_path, filename=f"{rarity.replace(' ', '_')}_gallery.html"))
+                    except FileNotFoundError as e:
+                        print(f"Couldn't generate gallery for {rarity}: {e}")
+                        await message.channel.send(f"Couldn't generate gallery for {rarity}")
+
+                if files:
+                    await message.channel.send(
+                        f"{message.author.mention} Here are the gacha item galleries:",
+                        files=files
+                    )
+                    
+                    # Clean up temporary files
+                    for file in files:
+                        try:
+                            Path(file.filename).unlink()
+                        except:
+                            pass
+                else:
+                    await message.channel.send("Couldn't generate any galleries.")
+                    
+            except Exception as e:
+                await message.channel.send(f"An error occurred: {str(e)}")
+                print(f"Error generating galleries: {e}")
+        
+        if msg_lower.startswith('!gachapool'):
+            await message.channel.send("List of gacha pools can be found here: https://github.com/TiltedFaith/botlatro/tree/main/assets/images/gacha\n")
         # GACHA COUNTER
         if msg_lower.startswith('!counter'):
             user_id = message.author.id
@@ -321,6 +355,7 @@ def setup_handlers(client):
             user_id = message.author.id
             gacha_counter, guarantee_counter = await handler.get_user_counters(user_id)
             pull_count = 1
+            
             # 10 PULLS
             if msg_lower.startswith('!hoyogacha10'):
                 pull_count = 10
@@ -401,6 +436,7 @@ def setup_handlers(client):
             else:
                 await message.channel.send("Couldn't find any gacha images!")
 
+        # ==========COMMAND LIST==========
         if msg_lower.startswith('!commands'):
             commands = [
                 "!join - Join your voice channel (no functionality yet)",
@@ -409,5 +445,6 @@ def setup_handlers(client):
                 "!hoyogacha - Single pull",
                 "!hoyogacha10 - 10 pulls",
                 "!commands - List all commands"
+                "!gachapool - List all gacha pools",
             ]
             await message.channel.send(f"{message.author.mention} \n" + f"\n".join(commands))
